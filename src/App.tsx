@@ -1,11 +1,11 @@
-import { Routes, Route } from 'react-router-dom';
-import { Layout } from '@/components/Layout';
-import { Home } from '@/pages/Home';
-import { Blog } from '@/pages/Blog';
-import { Article } from '@/pages/Article';
-import { CategoryPage } from '@/pages/CategoryPage';
-import { TagPage } from '@/pages/TagPage';
-import { NotFound } from '@/pages/NotFound';
+import { Routes, Route } from "react-router-dom";
+import { Layout } from "@/components/Layout";
+import { Home } from "@/pages/Home";
+import { Blog } from "@/pages/Blog";
+import { Article } from "@/pages/Article";
+import { CategoryPage } from "@/pages/CategoryPage";
+import { TagPage } from "@/pages/TagPage";
+import { NotFound } from "@/pages/NotFound";
 
 function App() {
   return (
