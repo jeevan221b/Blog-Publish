@@ -1,11 +1,11 @@
 import { Link, useParams } from 'react-router-dom';
-import { BlogCard } from '@/components/BlogCard';
 import { EmptyState } from './Blog';
-import { getPostsByTag } from '@/lib/posts';
 
+// The Nexus backend doesn't provide tag data (posts only carry a
+// single `category`), so this page no longer filters real posts.
+// The route is kept alive so existing /blog/tag/:tag links don't 404.
 export function TagPage() {
   const { tag } = useParams<{ tag: string }>();
-  const posts = tag ? getPostsByTag(tag) : [];
 
   return (
     <div className="mx-auto max-w-6xl px-5 sm:px-8 pb-24">
@@ -28,15 +28,7 @@ export function TagPage() {
         </Link>
       </header>
 
-      {posts.length > 0 ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {posts.map((post) => (
-            <BlogCard key={post.slug} post={post} />
-          ))}
-        </div>
-      ) : (
-        <EmptyState />
-      )}
+      <EmptyState />
     </div>
   );
 }

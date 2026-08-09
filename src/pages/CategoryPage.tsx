@@ -1,13 +1,38 @@
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { BlogCard } from '@/components/BlogCard';
 import { CategoryFilter } from '@/components/CategoryFilter';
+import { LoadingState, ErrorState } from '@/components/PageState';
 import { EmptyState } from './Blog';
-import { getPostsByCategory, getAllCategories } from '@/lib/posts';
+import { getAllPosts, getAllCategories } from '@/lib/posts';
+import type { BlogPost } from '@/types/post';
 
 export function CategoryPage() {
   const { category } = useParams<{ category: string }>();
-  const posts = category ? getPostsByCategory(category) : [];
-  const categories = getAllCategories();
+  const [posts, setPosts] = useState<BlogPost[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getAllPosts()
+      .then((data) => {
+        if (!cancelled) setPosts(data);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load posts.');
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const categories = posts ? getAllCategories(posts) : [];
+  const filtered =
+    posts && category
+      ? posts.filter((p) => (p.category ?? '').toLowerCase() === category.toLowerCase())
+      : [];
 
   return (
     <div className="mx-auto max-w-6xl px-5 sm:px-8 pb-24">
@@ -27,9 +52,13 @@ export function CategoryPage() {
         <CategoryFilter categories={categories} active={category} />
       </section>
 
-      {posts.length > 0 ? (
+      {error ? (
+        <ErrorState message={error} />
+      ) : !posts ? (
+        <LoadingState label="Loading posts" />
+      ) : filtered.length > 0 ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {posts.map((post) => (
+          {filtered.map((post) => (
             <BlogCard key={post.slug} post={post} />
           ))}
         </div>

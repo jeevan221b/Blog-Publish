@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import type { BlogPost } from '@/types/post';
-import { formatDate } from '@/lib/posts';
+import { formatDate, getPostDate } from '@/lib/posts';
+import { estimateReadTime } from '@/lib/readTime';
 
 interface BlogCardProps {
   post: BlogPost;
@@ -19,7 +20,7 @@ export function BlogCard({ post }: BlogCardProps) {
           className="font-mono text-[10px] tracking-widest px-2 py-1 rounded"
           style={{ color: 'var(--color-accent)', backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, transparent)' }}
         >
-          {post.category.toUpperCase()}
+          {(post.category ?? 'UNCATEGORIZED').toUpperCase()}
         </span>
         <ArrowUpRight
           size={16}
@@ -38,7 +39,7 @@ export function BlogCard({ post }: BlogCardProps) {
 
       <div className="flex items-center justify-between mt-auto pt-3 border-t" style={{ borderColor: 'var(--border-soft)' }}>
         <span className="font-mono text-[11px]" style={{ color: 'var(--text-faint)' }}>
-          {formatDate(post.date)} · {post.readTime}
+          {formatDate(getPostDate(post))} · {estimateReadTime(post.content)}
         </span>
       </div>
     </Link>

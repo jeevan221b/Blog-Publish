@@ -1,18 +1,17 @@
-export interface BlogPostFrontmatter {
+// Matches the shape returned by the Nexus blog backend
+// (GET /api/posts, GET /api/posts/:slug).
+export interface BlogPost {
+  id: number;
+  slug: string;
   title: string;
   description: string;
-  date: string; // ISO date, e.g. "2026-08-08"
-  category: string;
-  tags: string[];
-  readTime?: string;
-  featured?: boolean;
-  image?: string;
-}
-
-export interface BlogPost extends BlogPostFrontmatter {
-  slug: string;
   content: string; // raw markdown body
-  readTime: string; // always resolved, computed if not provided
+  cover_image: string | null;
+  category: string | null;
+  published: boolean;
+  created_at: string; // e.g. "2026-08-09 10:00:00"
+  updated_at: string;
+  published_at: string | null;
 }
 
 export interface TocItem {

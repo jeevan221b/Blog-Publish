@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import type { BlogPost } from '@/types/post';
-import { formatDate } from '@/lib/posts';
+import { formatDate, getPostDate } from '@/lib/posts';
+import { estimateReadTime } from '@/lib/readTime';
 
 interface FeaturedPostProps {
   post: BlogPost;
@@ -24,7 +25,7 @@ export function FeaturedPost({ post }: FeaturedPostProps) {
                 backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, transparent)',
               }}
             >
-              {post.category.toUpperCase()}
+              {(post.category ?? 'UNCATEGORIZED').toUpperCase()}
             </span>
             <span className="font-mono text-[11px]" style={{ color: 'var(--text-faint)' }}>
               FEATURED
@@ -43,7 +44,7 @@ export function FeaturedPost({ post }: FeaturedPostProps) {
 
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs" style={{ color: 'var(--text-faint)' }}>
-              {formatDate(post.date)} · {post.readTime}
+              {formatDate(getPostDate(post))} · {estimateReadTime(post.content)}
             </span>
             <span
               className="inline-flex items-center gap-1.5 text-sm font-medium"

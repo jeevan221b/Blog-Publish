@@ -1,11 +1,33 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { NexusStatus } from '@/components/NexusStatus';
 import { FeaturedPost } from '@/components/FeaturedPost';
-import { getFeaturedPost } from '@/lib/posts';
+import { LoadingState, ErrorState } from '@/components/PageState';
+import { getAllPosts, getFeaturedPost } from '@/lib/posts';
+import type { BlogPost } from '@/types/post';
 
 export function Home() {
-  const featured = getFeaturedPost();
+  const [posts, setPosts] = useState<BlogPost[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getAllPosts()
+      .then((data) => {
+        if (!cancelled) setPosts(data);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load posts.');
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const featured = posts ? getFeaturedPost(posts) : undefined;
 
   return (
     <div className="mx-auto max-w-6xl px-5 sm:px-8">
@@ -64,7 +86,13 @@ export function Home() {
         <p className="font-mono text-xs tracking-widest mb-6" style={{ color: 'var(--text-faint)' }}>
           FEATURED PROJECT
         </p>
-        {featured && <FeaturedPost post={featured} />}
+        {error ? (
+          <ErrorState message={error} />
+        ) : !posts ? (
+          <LoadingState label="Loading featured project" />
+        ) : featured ? (
+          <FeaturedPost post={featured} />
+        ) : null}
       </section>
     </div>
   );

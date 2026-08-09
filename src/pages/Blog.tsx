@@ -1,12 +1,34 @@
+import { useEffect, useState } from 'react';
 import { FeaturedPost } from '@/components/FeaturedPost';
 import { BlogCard } from '@/components/BlogCard';
 import { CategoryFilter } from '@/components/CategoryFilter';
-import { allPosts, getFeaturedPost, getAllCategories } from '@/lib/posts';
+import { LoadingState, ErrorState } from '@/components/PageState';
+import { getAllPosts, getFeaturedPost, getAllCategories } from '@/lib/posts';
+import type { BlogPost } from '@/types/post';
 
 export function Blog() {
-  const featured = getFeaturedPost();
-  const categories = getAllCategories();
-  const recent = allPosts.filter((p) => p.slug !== featured?.slug);
+  const [posts, setPosts] = useState<BlogPost[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getAllPosts()
+      .then((data) => {
+        if (!cancelled) setPosts(data);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load posts.');
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const featured = posts ? getFeaturedPost(posts) : undefined;
+  const categories = posts ? getAllCategories(posts) : [];
+  const recent = posts ? posts.filter((p) => p.slug !== featured?.slug) : [];
 
   return (
     <div className="mx-auto max-w-6xl px-5 sm:px-8 pb-24">
@@ -38,34 +60,42 @@ export function Blog() {
         </p>
       </header>
 
-      {featured && (
-        <section className="mb-14">
-          <FeaturedPost post={featured} />
-        </section>
+      {error ? (
+        <ErrorState message={error} />
+      ) : !posts ? (
+        <LoadingState label="Loading posts" />
+      ) : (
+        <>
+          {featured && (
+            <section className="mb-14">
+              <FeaturedPost post={featured} />
+            </section>
+          )}
+
+          <section className="mb-8">
+            <CategoryFilter categories={categories} />
+          </section>
+
+          <section aria-labelledby="recent-heading">
+            <h2
+              id="recent-heading"
+              className="font-mono text-xs tracking-widest mb-6"
+              style={{ color: 'var(--text-faint)' }}
+            >
+              RECENT WRITING
+            </h2>
+            {recent.length > 0 ? (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {recent.map((post) => (
+                  <BlogCard key={post.slug} post={post} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState />
+            )}
+          </section>
+        </>
       )}
-
-      <section className="mb-8">
-        <CategoryFilter categories={categories} />
-      </section>
-
-      <section aria-labelledby="recent-heading">
-        <h2
-          id="recent-heading"
-          className="font-mono text-xs tracking-widest mb-6"
-          style={{ color: 'var(--text-faint)' }}
-        >
-          RECENT WRITING
-        </h2>
-        {recent.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {recent.map((post) => (
-              <BlogCard key={post.slug} post={post} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState />
-        )}
-      </section>
     </div>
   );
 }
