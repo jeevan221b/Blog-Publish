@@ -1,6 +1,6 @@
 import type { BlogPost } from '@/types/post';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 export async function fetchPosts(): Promise<BlogPost[]> {
   const response = await fetch(`${API_URL}/api/posts`);

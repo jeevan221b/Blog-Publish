@@ -2,7 +2,7 @@ import type { BlogPost } from '@/types/post';
 
 // Nexus backend base URL. Never hardcode localhost:3000 elsewhere —
 // this is the only place that should read the env var.
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 /** Raw shape returned by the Express/SQLite backend. */
 interface ApiPost {
