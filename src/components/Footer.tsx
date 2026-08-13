@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Lock } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -37,6 +38,16 @@ export function Footer() {
               style={{ color: 'var(--text-muted)' }}
             >
               Self-hosting
+            </Link>
+            <Link
+              to="/admin"
+              aria-label="Admin"
+              title="Admin"
+              className="inline-flex items-center gap-1 hover:underline"
+              style={{ color: 'var(--text-faint)' }}
+            >
+              <Lock size={12} aria-hidden="true" />
+              Admin
             </Link>
           </nav>
         </div>

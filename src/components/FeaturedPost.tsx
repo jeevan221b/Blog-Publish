@@ -28,7 +28,7 @@ export function FeaturedPost({ post }: FeaturedPostProps) {
               {(post.category ?? 'UNCATEGORIZED').toUpperCase()}
             </span>
             <span className="font-mono text-[11px]" style={{ color: 'var(--text-faint)' }}>
-              FEATURED
+              LATEST
             </span>
           </div>
 

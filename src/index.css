@@ -75,6 +75,17 @@ body {
   border-radius: 2px;
 }
 
+/* Browsers don't give <button> a pointer cursor by default — force it
+   consistently everywhere instead of adding hover:cursor-pointer per button. */
+button,
+[role="button"] {
+  cursor: pointer;
+}
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
 .font-display {
   font-family: var(--font-display);
 }

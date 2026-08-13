@@ -42,10 +42,15 @@ export function Home() {
           >
             Raj Diwakar
           </h1>
-          <p className="text-base sm:text-lg leading-relaxed max-w-lg mb-8" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-base sm:text-lg leading-relaxed max-w-lg mb-4" style={{ color: 'var(--text-muted)' }}>
             I build small, slightly stubborn systems — bots, home servers, and
             the occasional microcontroller — and write about what breaks
             along the way.
+          </p>
+          <p className="text-base sm:text-lg leading-relaxed max-w-lg mb-8" style={{ color: 'var(--text-muted)' }}>
+            This site itself is one of those systems: self-hosted off a phone
+            in my room, written up over on the blog along with everything
+            else I tinker with.
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <Link
@@ -57,11 +62,11 @@ export function Home() {
               <ArrowRight size={15} />
             </Link>
             <a
-              href="#projects"
+              href="#latest"
               className="inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium"
               style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
             >
-              View projects
+              Latest post
             </a>
           </div>
         </div>
@@ -69,27 +74,23 @@ export function Home() {
         <NexusStatus />
       </section>
 
-      <section id="experience" className="py-14 border-t scroll-mt-24" style={{ borderColor: 'var(--border)' }}>
-        <p className="font-mono text-xs tracking-widest mb-6" style={{ color: 'var(--text-faint)' }}>
-          EXPERIENCE
-        </p>
-        <div className="rounded-xl border p-6" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-elevated)' }}>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Experience details are coming to the full portfolio soon. In the
-            meantime, the blog is a decent proxy for what I've actually been
-            doing.
+      <section id="latest" className="py-14 border-t scroll-mt-24" style={{ borderColor: 'var(--border)' }}>
+        <div className="flex items-center justify-between mb-6">
+          <p className="font-mono text-xs tracking-widest" style={{ color: 'var(--text-faint)' }}>
+            LATEST POST
           </p>
+          <Link
+            to="/blog"
+            className="text-sm font-medium"
+            style={{ color: 'var(--color-accent)' }}
+          >
+            See all posts
+          </Link>
         </div>
-      </section>
-
-      <section id="projects" className="py-14 border-t scroll-mt-24" style={{ borderColor: 'var(--border)' }}>
-        <p className="font-mono text-xs tracking-widest mb-6" style={{ color: 'var(--text-faint)' }}>
-          FEATURED PROJECT
-        </p>
         {error ? (
           <ErrorState message={error} />
         ) : !posts ? (
-          <LoadingState label="Loading featured project" />
+          <LoadingState label="Loading latest post" />
         ) : featured ? (
           <FeaturedPost post={featured} />
         ) : null}

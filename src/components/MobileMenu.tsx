@@ -9,8 +9,6 @@ interface MobileMenuProps {
 
 const navItems = [
   { label: 'Home', to: '/' },
-  { label: 'Experience', to: '/#experience' },
-  { label: 'Projects', to: '/#projects' },
   { label: 'Blog', to: '/blog' },
 ];
 
