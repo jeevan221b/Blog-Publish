@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Home } from "lucide-react";
 import type { BlogPost } from "@/types/post";
 import { fetchAllPostsAdmin, deletePost } from "@/lib/adminApi";
 import { AuthError, logout } from "@/lib/auth";
@@ -73,6 +74,18 @@ export function AdminDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              aria-label="Go to home page"
+              title="Go to home page"
+              className="rounded-lg border p-2"
+              style={{
+                borderColor: "var(--border)",
+                color: "var(--text-muted)",
+              }}
+            >
+              <Home size={16} />
+            </Link>
             <Link
               to="/admin/posts/new"
               className="rounded-lg px-4 py-2 text-sm font-medium"
