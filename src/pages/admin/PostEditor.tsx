@@ -9,11 +9,14 @@ import {
   createPost,
   updatePost,
   deletePost,
+  uploadCoverImage,
   type PostInput,
 } from "@/lib/adminApi";
 import { getAllCategories } from "@/lib/posts";
 import { estimateReadTime } from "@/lib/readTime";
 import { AuthError } from "@/lib/auth";
+import { useToast } from "@/hooks/useToast";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 function slugify(text: string): string {
   return text
@@ -70,6 +73,7 @@ export function PostEditor() {
   const { slug: slugParam } = useParams<{ slug?: string }>();
   const isEditing = Boolean(slugParam);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     isEditing ? "loading" : "ready",
@@ -82,6 +86,9 @@ export function PostEditor() {
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState("");
+  const [coverImageMode, setCoverImageMode] = useState<"link" | "upload">("link");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [category, setCategory] = useState("");
   const [published, setPublished] = useState(false);
 
@@ -89,9 +96,8 @@ export function PostEditor() {
   const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
 
   const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [savedLabel, setSavedLabel] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   // Suggestions for the category field — best-effort, never blocks the editor.
   useEffect(() => {
@@ -115,7 +121,7 @@ export function PostEditor() {
         if (cancelled) return;
         setTitle(post.title);
         setSlug(post.slug);
-        setDescription(post.description);
+        setDescription(post.description ?? "");
         setContent(post.content);
         setCoverImage(post.cover_image ?? "");
         setCategory(post.category ?? "");
@@ -145,6 +151,26 @@ export function PostEditor() {
     }
   }
 
+  async function handleCoverImageFile(file: File | undefined) {
+    if (!file) return;
+    setUploadError(null);
+    setUploadingImage(true);
+    try {
+      const url = await uploadCoverImage(file);
+      setCoverImage(url);
+    } catch (err) {
+      if (err instanceof AuthError) {
+        navigate("/admin/login", { replace: true });
+        return;
+      }
+      setUploadError(
+        err instanceof Error ? err.message : "Failed to upload image.",
+      );
+    } finally {
+      setUploadingImage(false);
+    }
+  }
+
   const canSave = title.trim() !== "" && slug.trim() !== "" && content.trim() !== "";
 
   async function handleSubmit(event: FormEvent) {
@@ -152,57 +178,60 @@ export function PostEditor() {
     if (!canSave || saving) return;
 
     setSaving(true);
-    setSaveError(null);
-    setSavedLabel(null);
-
-    const input: PostInput = {
-      slug,
-      title: title.trim(),
-      description: description.trim() || null,
-      content,
-      cover_image: coverImage.trim() || null,
-      category: category.trim() || null,
-      published,
-    };
 
     try {
+      const input: PostInput = {
+        slug,
+        title: title.trim(),
+        description: description.trim() || null,
+        content,
+        cover_image: coverImage.trim() || null,
+        category: category.trim() || null,
+        published,
+      };
+
       if (isEditing && slugParam) {
         await updatePost(slugParam, input);
-        setSavedLabel(
-          `Saved ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
-        );
+        showToast("success", "Blog edited.");
       } else {
-        const created = await createPost(input);
-        navigate(`/admin/posts/${encodeURIComponent(created.slug)}/edit`, {
-          replace: true,
-        });
-        return;
+        await createPost(input);
+        showToast(
+          "success",
+          published ? "Post published." : "Post saved as draft.",
+        );
       }
+      navigate("/admin");
     } catch (err) {
       if (err instanceof AuthError) {
         navigate("/admin/login", { replace: true });
         return;
       }
-      setSaveError(err instanceof Error ? err.message : "Failed to save post.");
+      showToast(
+        "error",
+        err instanceof Error ? err.message : "Failed to save post.",
+      );
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleDelete() {
+  async function handleConfirmDelete() {
     if (!slugParam) return;
-    if (!confirm(`Delete "${slugParam}"? This can't be undone.`)) return;
 
     setDeleting(true);
     try {
       await deletePost(slugParam);
+      showToast("success", "Post deleted.");
       navigate("/admin", { replace: true });
     } catch (err) {
       if (err instanceof AuthError) {
         navigate("/admin/login", { replace: true });
         return;
       }
-      alert(err instanceof Error ? err.message : "Failed to delete post.");
+      showToast(
+        "error",
+        err instanceof Error ? err.message : "Failed to delete post.",
+      );
     } finally {
       setDeleting(false);
     }
@@ -274,15 +303,6 @@ export function PostEditor() {
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              {savedLabel && (
-                <span
-                  className="font-mono text-[10px] hidden sm:inline"
-                  style={{ color: "var(--color-online)" }}
-                >
-                  {savedLabel}
-                </span>
-              )}
-
               <button
                 type="button"
                 role="switch"
@@ -314,7 +334,7 @@ export function PostEditor() {
               {isEditing && (
                 <button
                   type="button"
-                  onClick={handleDelete}
+                  onClick={() => setConfirmingDelete(true)}
                   disabled={deleting}
                   className="rounded-lg border px-3 py-1.5 text-sm disabled:opacity-50"
                   style={{
@@ -336,14 +356,6 @@ export function PostEditor() {
               </button>
             </div>
           </div>
-
-          {saveError && (
-            <div className="max-w-6xl mx-auto px-4 pb-3">
-              <p className="text-sm" style={{ color: "var(--color-danger)" }} role="alert">
-                {saveError}
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Meta fields */}
@@ -408,15 +420,103 @@ export function PostEditor() {
               </datalist>
             </Field>
 
-            <Field label="Cover image URL" htmlFor="cover_image">
-              <input
-                id="cover_image"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm font-mono outline-none"
-                style={inputStyle}
-              />
-            </Field>
+            <div className="sm:col-span-2">
+              <Field label="Cover image" htmlFor="cover_image">
+                <div className="flex flex-col gap-2">
+                  <div
+                    className="inline-flex self-start rounded-lg border p-0.5 text-xs font-mono"
+                    style={{ borderColor: "var(--border)" }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setCoverImageMode("link")}
+                      className="px-3 py-1 rounded-md"
+                      style={{
+                        backgroundColor:
+                          coverImageMode === "link" ? "var(--bg-inset)" : "transparent",
+                        color:
+                          coverImageMode === "link" ? "var(--text)" : "var(--text-faint)",
+                      }}
+                    >
+                      Link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCoverImageMode("upload")}
+                      className="px-3 py-1 rounded-md"
+                      style={{
+                        backgroundColor:
+                          coverImageMode === "upload" ? "var(--bg-inset)" : "transparent",
+                        color:
+                          coverImageMode === "upload" ? "var(--text)" : "var(--text-faint)",
+                      }}
+                    >
+                      Upload
+                    </button>
+                  </div>
+
+                  {coverImageMode === "link" ? (
+                    <input
+                      id="cover_image"
+                      value={coverImage}
+                      onChange={(e) => setCoverImage(e.target.value)}
+                      placeholder="https://…"
+                      className="w-full rounded-lg border px-3 py-2 text-sm font-mono outline-none"
+                      style={inputStyle}
+                    />
+                  ) : (
+                    <input
+                      id="cover_image"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleCoverImageFile(e.target.files?.[0])}
+                      disabled={uploadingImage}
+                      className="w-full rounded-lg border px-3 py-2 text-sm outline-none disabled:opacity-60"
+                      style={inputStyle}
+                    />
+                  )}
+
+                  {uploadingImage && (
+                    <p className="text-xs" style={{ color: "var(--text-faint)" }}>
+                      Uploading…
+                    </p>
+                  )}
+                  {uploadError && (
+                    <p className="text-xs" style={{ color: "var(--color-danger)" }} role="alert">
+                      {uploadError}
+                    </p>
+                  )}
+
+                  {coverImage && (
+                    <div
+                      className="flex items-center gap-3 rounded-lg border p-2"
+                      style={{ borderColor: "var(--border)" }}
+                    >
+                      <img
+                        src={coverImage}
+                        alt="Cover preview"
+                        className="h-14 w-24 rounded-md object-cover shrink-0"
+                        style={{ backgroundColor: "var(--bg-inset)" }}
+                      />
+                      <p
+                        className="text-xs font-mono truncate"
+                        style={{ color: "var(--text-faint)" }}
+                      >
+                        {coverImage}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setCoverImage("")}
+                        className="ml-auto shrink-0 text-xs"
+                        style={{ color: "var(--color-danger)" }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </Field>
+            </div>
           </div>
 
           {/* Content: write + live preview */}
@@ -504,6 +604,16 @@ export function PostEditor() {
           </div>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={confirmingDelete}
+        title={`Delete "${slug}"?`}
+        description="This can't be undone."
+        confirmLabel="Delete"
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmingDelete(false)}
+      />
     </div>
   );
 }

@@ -5,12 +5,16 @@ import type { BlogPost } from "@/types/post";
 import { fetchAllPostsAdmin, deletePost } from "@/lib/adminApi";
 import { AuthError, logout } from "@/lib/auth";
 import { LoadingState, ErrorState } from "@/components/PageState";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { useToast } from "@/hooks/useToast";
 
 export function AdminDashboard() {
   const [posts, setPosts] = useState<BlogPost[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<BlogPost | null>(null);
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   async function loadPosts() {
     setError(null);
@@ -31,19 +35,25 @@ export function AdminDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function handleDelete(slug: string) {
-    if (!confirm(`Delete "${slug}"? This can't be undone.`)) return;
+  async function handleConfirmDelete() {
+    if (!deleteTarget) return;
+    const { slug } = deleteTarget;
 
     setDeletingSlug(slug);
     try {
       await deletePost(slug);
       setPosts((prev) => prev?.filter((p) => p.slug !== slug) ?? null);
+      showToast("success", `"${deleteTarget.title}" deleted.`);
+      setDeleteTarget(null);
     } catch (err) {
       if (err instanceof AuthError) {
         navigate("/admin/login", { replace: true });
         return;
       }
-      alert(err instanceof Error ? err.message : "Failed to delete post.");
+      showToast(
+        "error",
+        err instanceof Error ? err.message : "Failed to delete post.",
+      );
     } finally {
       setDeletingSlug(null);
     }
@@ -176,7 +186,7 @@ export function AdminDashboard() {
                     Edit
                   </Link>
                   <button
-                    onClick={() => handleDelete(post.slug)}
+                    onClick={() => setDeleteTarget(post)}
                     disabled={deletingSlug === post.slug}
                     className="rounded-lg border px-3 py-1.5 text-sm disabled:opacity-50"
                     style={{
@@ -192,6 +202,16 @@ export function AdminDashboard() {
           </ul>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={`Delete "${deleteTarget?.title ?? ""}"?`}
+        description="This can't be undone."
+        confirmLabel="Delete"
+        loading={deleteTarget !== null && deletingSlug === deleteTarget.slug}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

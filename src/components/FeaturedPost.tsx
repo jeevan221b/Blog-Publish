@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import type { BlogPost } from '@/types/post';
 import { formatDate, getPostDate } from '@/lib/posts';
 import { estimateReadTime } from '@/lib/readTime';
+import { CoverImage } from './CoverImage';
 
 interface FeaturedPostProps {
   post: BlogPost;
@@ -60,10 +61,20 @@ export function FeaturedPost({ post }: FeaturedPostProps) {
         </div>
 
         <div
-          className="relative order-1 md:order-2 min-h-[180px] flex items-center justify-center p-8"
+          className="relative order-1 md:order-2 min-h-[180px]"
           style={{ backgroundColor: 'var(--bg-inset)' }}
         >
-          <PhoneServerGraphic />
+          {post.cover_image ? (
+            <CoverImage
+              src={post.cover_image}
+              alt={post.title}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full min-h-[180px] items-center justify-center p-8">
+              <PhoneServerGraphic />
+            </div>
+          )}
         </div>
       </div>
     </Link>

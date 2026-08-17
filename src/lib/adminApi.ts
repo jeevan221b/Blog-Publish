@@ -80,3 +80,32 @@ export async function deletePost(slug: string): Promise<void> {
   );
   return handleAuthedResponse<void>(response);
 }
+
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // keep in sync with the BE limit
+
+/**
+ * Uploads a local image file for use as a post cover image and returns the
+ * hosted URL to store on the post. Kept separate from create/update so the
+ * post payload always deals in plain `cover_image` URL strings, whether the
+ * image was pasted as a link or uploaded from disk.
+ */
+export async function uploadCoverImage(file: File): Promise<string> {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Please choose an image file.");
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    throw new Error("Image is too large (max 5MB).");
+  }
+
+  const body = new FormData();
+  body.append("image", file);
+
+  const response = await fetch(`${API_URL}/api/admin/uploads`, {
+    method: "POST",
+    // No Content-Type here — the browser sets the multipart boundary itself.
+    headers: authHeaders(),
+    body,
+  });
+  const data = await handleAuthedResponse<{ url: string }>(response);
+  return data.url;
+}

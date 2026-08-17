@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { BlogPost } from '@/types/post';
 import { formatDate, getPostDate } from '@/lib/posts';
 import { estimateReadTime } from '@/lib/readTime';
+import { CoverImage } from './CoverImage';
 
 interface ArticleHeaderProps {
   post: BlogPost;
@@ -42,6 +43,15 @@ export function ArticleHeader({ post }: ArticleHeaderProps) {
       <p className="font-mono text-xs" style={{ color: 'var(--text-faint)' }}>
         {formatDate(getPostDate(post))} · {estimateReadTime(post.content).toUpperCase()}
       </p>
+
+      {post.cover_image && (
+        <div
+          className="mt-8 aspect-[16/9] w-full overflow-hidden rounded-2xl border sm:aspect-[21/9]"
+          style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-inset)' }}
+        >
+          <CoverImage src={post.cover_image} alt={post.title} className="h-full w-full object-cover" />
+        </div>
+      )}
     </header>
   );
 }
