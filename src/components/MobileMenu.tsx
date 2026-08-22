@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface MobileMenuProps {
   open: boolean;
@@ -22,7 +23,11 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
 
   if (!open) return null;
 
-  return (
+  // Rendered via portal so this overlay isn't confined to the navbar's
+  // containing block (backdrop-blur/backdrop-filter on the header creates
+  // one for `position: fixed` descendants, which clips a nested overlay
+  // to the header's own height instead of the full viewport).
+  return createPortal(
     <div
       className="fixed inset-0 z-50 md:hidden"
       role="dialog"
@@ -64,6 +69,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
           </NavLink>
         ))}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
