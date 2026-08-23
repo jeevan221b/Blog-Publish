@@ -1,15 +1,98 @@
+import { useEffect, useState } from 'react';
+import { API_URL } from '@/lib/config';
+
 interface NexusStatusProps {
   compact?: boolean;
   className?: string;
 }
 
-const rows: Array<[string, string]> = [
-  ['HARDWARE', 'Samsung Galaxy M31'],
-  ['STACK', 'Termux / Nginx'],
-  ['STATUS', '● ONLINE'],
-];
+type HealthState = 'checking' | 'online' | 'offline';
+
+const NEXUS_BIRTHDAY = new Date('2026-08-09T00:00:00');
+const HEALTH_CHECK_INTERVAL_MS = 30_000;
+const HEALTH_CHECK_TIMEOUT_MS = 5_000;
+
+function getDaysSurvived(): number {
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfBirthday = new Date(
+    NEXUS_BIRTHDAY.getFullYear(),
+    NEXUS_BIRTHDAY.getMonth(),
+    NEXUS_BIRTHDAY.getDate()
+  );
+  const diffDays = Math.round(
+    (startOfToday.getTime() - startOfBirthday.getTime()) / 86_400_000
+  );
+  return Math.max(diffDays + 1, 1);
+}
+
+function useNexusHealth(): HealthState {
+  const [status, setStatus] = useState<HealthState>('checking');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkHealth() {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT_MS);
+
+      try {
+        const response = await fetch(`${API_URL}/api/health`, {
+          signal: controller.signal,
+        });
+        if (!cancelled) {
+          setStatus(response.ok ? 'online' : 'offline');
+        }
+      } catch {
+        if (!cancelled) {
+          setStatus('offline');
+        }
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    checkHealth();
+    const interval = setInterval(checkHealth, HEALTH_CHECK_INTERVAL_MS);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  return status;
+}
+
+const STATUS_COPY: Record<HealthState, { label: string; color: string; tagline: string }> = {
+  checking: {
+    label: '● CHECKING',
+    color: 'var(--color-led)',
+    tagline: 'Pinging Nexus…',
+  },
+  online: {
+    label: '● ONLINE',
+    color: 'var(--color-online)',
+    tagline: 'Nexus appears to be alive. This is good.',
+  },
+  offline: {
+    label: '● OFFLINE',
+    color: 'var(--color-danger)',
+    tagline: "Nexus isn't responding. Might be taking a nap.",
+  },
+};
 
 export function NexusStatus({ compact = false, className = '' }: NexusStatusProps) {
+  const health = useNexusHealth();
+  const { label, color, tagline } = STATUS_COPY[health];
+
+  const rows: Array<[string, string]> = [
+    ['HARDWARE', 'Samsung Galaxy M31'],
+    ['STACK', 'Termux / Nginx'],
+    ['UPTIME', `${getDaysSurvived()} days`],
+    ['STATUS', label],
+  ];
+
   if (compact) {
     return (
       <div
@@ -18,10 +101,10 @@ export function NexusStatus({ compact = false, className = '' }: NexusStatusProp
       >
         <span
           className="inline-block h-1.5 w-1.5 rounded-full animate-pulse"
-          style={{ backgroundColor: 'var(--color-online)' }}
+          style={{ backgroundColor: color }}
           aria-hidden="true"
         />
-        <span>NEXUS · ONLINE</span>
+        <span>NEXUS · {health === 'checking' ? 'CHECKING' : health.toUpperCase()}</span>
       </div>
     );
   }
@@ -42,7 +125,7 @@ export function NexusStatus({ compact = false, className = '' }: NexusStatusProp
         </span>
         <span
           className="inline-block h-1.5 w-1.5 rounded-full animate-pulse"
-          style={{ backgroundColor: 'var(--color-online)' }}
+          style={{ backgroundColor: color }}
           aria-hidden="true"
         />
       </div>
@@ -52,7 +135,7 @@ export function NexusStatus({ compact = false, className = '' }: NexusStatusProp
             <span style={{ color: 'var(--text-faint)' }}>{label}</span>
             <span
               style={{
-                color: label === 'STATUS' ? 'var(--color-online)' : 'var(--text-muted)',
+                color: label === 'STATUS' ? color : 'var(--text-muted)',
               }}
             >
               {value}
@@ -64,7 +147,7 @@ export function NexusStatus({ compact = false, className = '' }: NexusStatusProp
         className="px-3 py-1.5 text-[10px] border-t"
         style={{ borderColor: 'var(--border)', color: 'var(--text-faint)' }}
       >
-        Nexus appears to be alive. This is good.
+        {tagline}
       </div>
     </div>
   );

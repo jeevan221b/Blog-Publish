@@ -63,5 +63,5 @@ src/
 ## Notes
 
 - Dark mode is the default and primary visual direction; theme preference persists to `localStorage`.
-- The `NexusStatus` component currently uses static mock data — it's structured so a future `/api/status` on Nexus can drop straight in.
+- The `NexusStatus` component polls `GET /api/health` on Nexus every 30s (5s timeout) to drive the ONLINE/OFFLINE indicator; HARDWARE/STACK/UPTIME stay static/computed client-side.
 - No backend or database required for this version; it builds to a static `dist/` directory.
