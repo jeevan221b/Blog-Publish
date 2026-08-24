@@ -33,13 +33,6 @@ export function Footer() {
               Blog
             </Link>
             <Link
-              to="/blog/category/self-hosting"
-              className="hover:underline"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              Self-hosting
-            </Link>
-            <Link
               to="/admin"
               aria-label="Admin"
               title="Admin"

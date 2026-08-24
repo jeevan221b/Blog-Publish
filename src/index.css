@@ -190,6 +190,30 @@ button:disabled,
   color: #a7b8ff;
 }
 
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 8px;
+  border: 2px solid var(--bg);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-accent-dim);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 .nexus-scroll::-webkit-scrollbar {
   height: 8px;
   width: 8px;
@@ -200,6 +224,10 @@ button:disabled,
 .nexus-scroll::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 8px;
+  border: none;
+}
+.nexus-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-dim);
 }
 
 /* --- Minimal syntax highlight theme, tuned to design tokens --------- */
