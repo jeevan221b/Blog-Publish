@@ -29,9 +29,6 @@ export function Footer() {
         >
           <span>© {new Date().getFullYear()} Raj Diwakar. Built, broken, and rebuilt.</span>
           <nav className="flex items-center gap-4" aria-label="Footer">
-            <Link to="/blog" className="hover:underline" style={{ color: 'var(--text-muted)' }}>
-              Blog
-            </Link>
             <Link
               to="/admin"
               aria-label="Admin"
