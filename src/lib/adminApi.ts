@@ -31,6 +31,30 @@ async function handleAuthedResponse<T>(response: Response): Promise<T> {
   return response.json();
 }
 
+export interface ActivityEvent {
+  type: "session_start" | "post_view" | "session_end";
+  postSlug: string | null;
+  postTitle: string | null;
+  createdAt: string;
+}
+
+export interface ActivitySession {
+  sessionId: string;
+  startedAt: string;
+  lastSeenAt: string;
+  endedAt: string | null;
+  active: boolean;
+  events: ActivityEvent[];
+}
+
+/** Sessions come back newest-first, each session's events chronological. */
+export async function fetchActivitySessions(): Promise<ActivitySession[]> {
+  const response = await fetch(`${API_URL}/api/admin/activity/sessions`, {
+    headers: authHeaders(),
+  });
+  return handleAuthedResponse<ActivitySession[]>(response);
+}
+
 export async function fetchAllPostsAdmin(): Promise<BlogPost[]> {
   const response = await fetch(`${API_URL}/api/admin/posts`, {
     headers: authHeaders(),

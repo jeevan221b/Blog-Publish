@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Home } from "lucide-react";
+import { Home, Activity } from "lucide-react";
 import type { BlogPost } from "@/types/post";
 import { fetchAllPostsAdmin, deletePost } from "@/lib/adminApi";
 import { AuthError, logout } from "@/lib/auth";
@@ -95,6 +95,18 @@ export function AdminDashboard() {
               }}
             >
               <Home size={16} />
+            </Link>
+            <Link
+              to="/admin/activity"
+              aria-label="View visitor activity"
+              title="View visitor activity"
+              className="rounded-lg border p-2"
+              style={{
+                borderColor: "var(--border)",
+                color: "var(--text-muted)",
+              }}
+            >
+              <Activity size={16} />
             </Link>
             <Link
               to="/admin/posts/new"

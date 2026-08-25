@@ -18,6 +18,7 @@ import {
   PostNotFoundError,
 } from '@/lib/posts';
 import { extractToc } from '@/lib/toc';
+import { recordPostView } from '@/lib/activity';
 import type { BlogPost } from '@/types/post';
 
 type Status = 'loading' | 'ready' | 'error' | 'not-found';
@@ -64,6 +65,11 @@ export function Article() {
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
+  }, [slug]);
+
+  useEffect(() => {
+    if (!slug) return;
+    void recordPostView(slug);
   }, [slug]);
 
   const toc = useMemo(() => (post ? extractToc(post.content) : []), [post]);

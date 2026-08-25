@@ -1,8 +1,11 @@
 import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
+import { useActivityTracking } from '@/hooks/useActivityTracking';
 
 export function Layout() {
+  useActivityTracking();
+
   return (
     <div className="min-h-screen flex flex-col">
       <a

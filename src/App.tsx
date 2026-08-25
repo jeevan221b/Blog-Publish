@@ -7,6 +7,7 @@ import { CategoryPage } from "@/pages/CategoryPage";
 import { NotFound } from "@/pages/NotFound";
 import { AdminLogin } from "@/pages/admin/Login";
 import { AdminDashboard } from "@/pages/admin/Dashboard";
+import { AdminActivity } from "@/pages/admin/Activity";
 import { PostEditor } from "@/pages/admin/PostEditor";
 import { RequireAuth } from "@/components/RequireAuth";
 import { ToastProvider } from "@/hooks/useToast";
@@ -29,6 +30,14 @@ function App() {
           element={
             <RequireAuth>
               <AdminDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/activity"
+          element={
+            <RequireAuth>
+              <AdminActivity />
             </RequireAuth>
           }
         />
