@@ -1,15 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Home, ArrowLeft, RefreshCw } from "lucide-react";
+import { Home, ArrowLeft, RefreshCw, Pencil, Tag } from "lucide-react";
 import {
   fetchActivitySessions,
+  updateSessionTag,
+  TagValidationError,
+  SessionGoneError,
   type ActivityEvent,
   type ActivitySession,
 } from "@/lib/adminApi";
 import { AuthError, logout } from "@/lib/auth";
 import { LoadingState, ErrorState } from "@/components/PageState";
+import { useToast } from "@/hooks/useToast";
 
 const REFRESH_INTERVAL_MS = 30_000;
+const TAG_MAX_LENGTH = 40;
 
 function formatTimestamp(utc: string): string {
   // Server sends "YYYY-MM-DD HH:MM:SS" UTC — parse it as such and render local.
@@ -45,7 +50,160 @@ function eventLabel(event: ActivityEvent): string {
   }
 }
 
-function SessionCard({ session }: { session: ActivitySession }) {
+interface SessionTagEditorProps {
+  session: ActivitySession;
+  onTagSaved: (sessionId: string, tag: string | null) => void;
+  onSessionGone: (sessionId: string) => void;
+}
+
+function SessionTagEditor({
+  session,
+  onTagSaved,
+  onSessionGone,
+}: SessionTagEditorProps) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(session.tag ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const skipSaveRef = useRef(false);
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
+
+  // Stay in sync with background refreshes, but not mid-edit.
+  useEffect(() => {
+    if (!editing) setValue(session.tag ?? "");
+  }, [session.tag, editing]);
+
+  async function save() {
+    const trimmed = value.trim();
+    const newTag = trimmed === "" ? null : trimmed;
+
+    if (newTag === (session.tag ?? null)) {
+      setEditing(false);
+      setError(null);
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      await updateSessionTag(session.sessionId, newTag);
+      onTagSaved(session.sessionId, newTag);
+      setEditing(false);
+    } catch (err) {
+      if (err instanceof AuthError) {
+        navigate("/admin/login", { replace: true });
+        return;
+      }
+      if (err instanceof SessionGoneError) {
+        showToast("error", "That session is no longer available.");
+        onSessionGone(session.sessionId);
+        return;
+      }
+      if (err instanceof TagValidationError) {
+        setError(err.message);
+        return;
+      }
+      setError(err instanceof Error ? err.message : "Failed to save tag.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function handleBlur() {
+    if (skipSaveRef.current) {
+      skipSaveRef.current = false;
+      setValue(session.tag ?? "");
+      setError(null);
+      setEditing(false);
+      return;
+    }
+    void save();
+  }
+
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.currentTarget.blur();
+    } else if (e.key === "Escape") {
+      skipSaveRef.current = true;
+      e.currentTarget.blur();
+    }
+  }
+
+  if (editing) {
+    return (
+      <div className="flex flex-col gap-1">
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          maxLength={TAG_MAX_LENGTH}
+          placeholder="Who was this?"
+          disabled={saving}
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className="font-sans rounded border px-2 py-1 text-xs w-40 max-w-full disabled:opacity-50"
+          style={{
+            borderColor: "var(--border)",
+            color: "var(--text)",
+            backgroundColor: "var(--bg-elevated)",
+          }}
+        />
+        {error && (
+          <span className="font-sans" style={{ color: "var(--color-danger)" }}>
+            {error}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  if (session.tag) {
+    return (
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        aria-label={`Edit tag "${session.tag}"`}
+        title="Edit tag"
+        className="font-sans inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs"
+        style={{
+          color: "var(--color-accent)",
+          backgroundColor:
+            "color-mix(in srgb, var(--color-accent) 15%, transparent)",
+        }}
+      >
+        <Tag size={10} />
+        {session.tag}
+        <Pencil size={10} />
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      className="font-sans text-xs"
+      style={{ color: "var(--text-faint)" }}
+    >
+      + Add tag
+    </button>
+  );
+}
+
+interface SessionCardProps {
+  session: ActivitySession;
+  onTagSaved: (sessionId: string, tag: string | null) => void;
+  onSessionGone: (sessionId: string) => void;
+}
+
+function SessionCard({ session, onTagSaved, onSessionGone }: SessionCardProps) {
   return (
     <div
       className="rounded-lg border font-mono text-xs overflow-hidden"
@@ -89,6 +247,17 @@ function SessionCard({ session }: { session: ActivitySession }) {
         <span className="shrink-0" style={{ color: "var(--text-faint)" }}>
           {formatTimestamp(session.startedAt)}
         </span>
+      </div>
+
+      <div
+        className="px-3 py-2 border-b"
+        style={{ borderColor: "var(--border)" }}
+      >
+        <SessionTagEditor
+          session={session}
+          onTagSaved={onTagSaved}
+          onSessionGone={onSessionGone}
+        />
       </div>
 
       <div className="px-3 py-2.5 space-y-1">
@@ -156,6 +325,20 @@ export function AdminActivity() {
   function handleLogout() {
     logout();
     navigate("/admin/login", { replace: true });
+  }
+
+  function handleTagSaved(sessionId: string, tag: string | null) {
+    setSessions(
+      (prev) =>
+        prev?.map((s) => (s.sessionId === sessionId ? { ...s, tag } : s)) ??
+        null,
+    );
+  }
+
+  function handleSessionGone(sessionId: string) {
+    setSessions(
+      (prev) => prev?.filter((s) => s.sessionId !== sessionId) ?? null,
+    );
   }
 
   return (
@@ -245,7 +428,12 @@ export function AdminActivity() {
         {sessions && sessions.length > 0 && (
           <div className="space-y-3">
             {sessions.map((session) => (
-              <SessionCard key={session.sessionId} session={session} />
+              <SessionCard
+                key={session.sessionId}
+                session={session}
+                onTagSaved={handleTagSaved}
+                onSessionGone={handleSessionGone}
+              />
             ))}
           </div>
         )}

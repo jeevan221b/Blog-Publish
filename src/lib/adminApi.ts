@@ -44,6 +44,7 @@ export interface ActivitySession {
   lastSeenAt: string;
   endedAt: string | null;
   active: boolean;
+  tag: string | null;
   events: ActivityEvent[];
 }
 
@@ -53,6 +54,51 @@ export async function fetchActivitySessions(): Promise<ActivitySession[]> {
     headers: authHeaders(),
   });
   return handleAuthedResponse<ActivitySession[]>(response);
+}
+
+/** Thrown when a tag is rejected by the server (currently: over 40 chars). */
+export class TagValidationError extends Error {}
+
+/** Thrown when the session has aged out of the retention window (404). */
+export class SessionGoneError extends Error {
+  constructor(message = "This session is no longer available.") {
+    super(message);
+    this.name = "SessionGoneError";
+  }
+}
+
+/** Sets or clears (pass null) the admin's own label for a visitor session. */
+export async function updateSessionTag(
+  sessionId: string,
+  tag: string | null,
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/api/admin/activity/sessions/${encodeURIComponent(sessionId)}/tag`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ tag }),
+    },
+  );
+
+  if (response.status === 401) {
+    logout();
+    throw new AuthError();
+  }
+  if (response.status === 204) return;
+  if (response.status === 400) {
+    const data = await response.json().catch(() => null);
+    throw new TagValidationError(
+      data?.error ?? "Tag is too long (max 40 characters).",
+    );
+  }
+  if (response.status === 404) {
+    throw new SessionGoneError();
+  }
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.error ?? `Request failed: ${response.status}`);
+  }
 }
 
 export async function fetchAllPostsAdmin(): Promise<BlogPost[]> {
