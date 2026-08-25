@@ -18,8 +18,9 @@ function formatTimestamp(utc: string): string {
   return date.toLocaleString(undefined, {
     month: "short",
     day: "numeric",
-    hour: "2-digit",
+    hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 }
 
@@ -27,8 +28,9 @@ function formatTime(utc: string): string {
   const date = new Date(`${utc.replace(" ", "T")}Z`);
   if (Number.isNaN(date.getTime())) return utc;
   return date.toLocaleTimeString(undefined, {
-    hour: "2-digit",
+    hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 }
 
