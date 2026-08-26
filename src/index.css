@@ -57,6 +57,83 @@ html {
   animation: toast-in 0.18s ease-out;
 }
 
+/* --- Nexus buddy: the pixel mascot shown while an API call is in flight --- */
+.nexus-buddy {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.nexus-buddy__sprite {
+  display: block;
+  transform-origin: bottom center;
+  animation: nexus-buddy-waddle 0.5s ease-in-out infinite alternate;
+}
+.nexus-buddy__sprite svg {
+  display: block;
+  overflow: visible;
+}
+.nexus-buddy__frame {
+  animation: nexus-buddy-frame 0.5s linear infinite alternate;
+}
+.nexus-buddy__frame--b {
+  animation-direction: alternate-reverse;
+}
+.nexus-buddy__shadow {
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  width: 60%;
+  height: 5px;
+  margin-left: -30%;
+  border-radius: 50%;
+  background: var(--color-accent);
+  opacity: 0.25;
+  animation: nexus-buddy-shadow 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes nexus-buddy-waddle {
+  0% {
+    transform: translateX(-6px) rotate(-7deg);
+  }
+  50% {
+    transform: translateX(0) translateY(-4px) rotate(0deg);
+  }
+  100% {
+    transform: translateX(6px) rotate(7deg);
+  }
+}
+
+@keyframes nexus-buddy-frame {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes nexus-buddy-shadow {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.28;
+  }
+  50% {
+    transform: scaleX(0.65);
+    opacity: 0.16;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nexus-buddy__frame--b,
+  .nexus-buddy__shadow {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

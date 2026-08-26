@@ -1,3 +1,5 @@
+import { NexusBuddy } from '@/components/NexusBuddy';
+
 interface LoadingStateProps {
   label?: string;
 }
@@ -10,6 +12,9 @@ export function LoadingState({ label = 'Loading' }: LoadingStateProps) {
       role="status"
       aria-live="polite"
     >
+      <div className="flex justify-center mb-4">
+        <NexusBuddy />
+      </div>
       <p
         className="font-mono text-xs tracking-widest mb-1"
         style={{ color: 'var(--text-faint)' }}
