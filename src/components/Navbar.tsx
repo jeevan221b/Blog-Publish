@@ -35,7 +35,7 @@ export function Navbar() {
               key={item.label}
               to={item.to}
               className={({ isActive }) =>
-                `px-3 py-2 text-sm rounded-md transition-colors ${isActive ? 'font-medium' : ''}`
+                `nav-underline px-3 py-2 text-sm rounded-md transition-colors ${isActive ? 'font-medium' : ''}`
               }
               style={({ isActive }: { isActive: boolean }) => ({
                 color: isActive ? 'var(--text)' : 'var(--text-muted)',

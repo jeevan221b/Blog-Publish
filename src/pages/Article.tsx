@@ -8,6 +8,7 @@ import { TableOfContents } from '@/components/TableOfContents';
 import { ReadingProgress } from '@/components/ReadingProgress';
 import { PostNavigation } from '@/components/PostNavigation';
 import { RelatedPosts } from '@/components/RelatedPosts';
+import { Reveal } from '@/components/Reveal';
 import { LoadingState, ErrorState } from '@/components/PageState';
 import { NotFound } from './NotFound';
 import {
@@ -134,8 +135,12 @@ export function Article() {
         </div>
 
         <div className="max-w-[760px] mt-14 space-y-10 pb-20">
-          <PostNavigation prev={prev} next={next} />
-          <RelatedPosts posts={related} />
+          <Reveal>
+            <PostNavigation prev={prev} next={next} />
+          </Reveal>
+          <Reveal delay={80}>
+            <RelatedPosts posts={related} />
+          </Reveal>
         </div>
       </div>
     </div>

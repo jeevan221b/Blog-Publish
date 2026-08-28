@@ -18,7 +18,7 @@ export function PostNavigation({ prev, next }: PostNavigationProps) {
       {prev ? (
         <Link
           to={`/blog/${prev.slug}`}
-          className="group rounded-xl border p-4 flex flex-col justify-center transition-colors"
+          className="glow-hover group rounded-xl border p-4 flex flex-col justify-center"
           style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-elevated)' }}
         >
           <span
@@ -39,7 +39,7 @@ export function PostNavigation({ prev, next }: PostNavigationProps) {
       {next ? (
         <Link
           to={`/blog/${next.slug}`}
-          className="group rounded-xl border p-4 flex flex-col justify-center items-start sm:items-end text-left sm:text-right transition-colors"
+          className="glow-hover group rounded-xl border p-4 flex flex-col justify-center items-start sm:items-end text-left sm:text-right"
           style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-elevated)' }}
         >
           <span

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { FeaturedPost } from '@/components/FeaturedPost';
 import { BlogCard } from '@/components/BlogCard';
 import { CategoryFilter } from '@/components/CategoryFilter';
+import { Reveal } from '@/components/Reveal';
 import { LoadingState, ErrorState } from '@/components/PageState';
 import { getAllPosts, getFeaturedPost, getAllCategories } from '@/lib/posts';
 import type { BlogPost } from '@/types/post';
@@ -67,16 +68,16 @@ export function Blog() {
       ) : (
         <>
           {featured && (
-            <section className="mb-14">
+            <Reveal as="section" className="mb-14">
               <FeaturedPost post={featured} />
-            </section>
+            </Reveal>
           )}
 
           <section className="mb-8">
             <CategoryFilter categories={categories} />
           </section>
 
-          <section aria-labelledby="recent-heading">
+          <section aria-labelledby="recent-heading" className="divider-smoke pt-10 border-t">
             <h2
               id="recent-heading"
               className="font-mono text-xs tracking-widest mb-6"
@@ -86,8 +87,10 @@ export function Blog() {
             </h2>
             {recent.length > 0 ? (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {recent.map((post) => (
-                  <BlogCard key={post.slug} post={post} />
+                {recent.map((post, i) => (
+                  <Reveal key={post.slug} className="h-full" delay={Math.min(i, 6) * 55}>
+                    <BlogCard post={post} />
+                  </Reveal>
                 ))}
               </div>
             ) : (

@@ -13,7 +13,7 @@ export function BlogCard({ post }: BlogCardProps) {
   return (
     <Link
       to={`/blog/${post.slug}`}
-      className="group flex flex-col h-full rounded-xl border overflow-hidden transition-all duration-200 hover:-translate-y-0.5"
+      className="glow-hover group flex flex-col h-full rounded-xl border overflow-hidden"
       style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-elevated)' }}
     >
       {post.cover_image && (

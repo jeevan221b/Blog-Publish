@@ -13,7 +13,7 @@ export function FeaturedPost({ post }: FeaturedPostProps) {
   return (
     <Link
       to={`/blog/${post.slug}`}
-      className="group relative block rounded-2xl border overflow-hidden transition-all duration-200"
+      className="glow-hover group relative block rounded-2xl border overflow-hidden"
       style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-elevated)' }}
     >
       <div className="grid md:grid-cols-[1.1fr_0.9fr]">

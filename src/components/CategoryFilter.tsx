@@ -16,7 +16,7 @@ export function CategoryFilter({ categories, active }: CategoryFilterProps) {
       <Link
         to="/blog"
         aria-current={isAll ? 'page' : undefined}
-        className="px-3 py-1.5 rounded-full border transition-colors"
+        className="px-3 py-1.5 rounded-full border transition-[color,background-color,border-color,transform] duration-200 hover:-translate-y-0.5"
         style={{
           borderColor: isAll ? 'var(--color-accent)' : 'var(--border)',
           color: isAll ? 'var(--color-accent)' : 'var(--text-muted)',
@@ -34,7 +34,7 @@ export function CategoryFilter({ categories, active }: CategoryFilterProps) {
             key={cat}
             to={`/blog/category/${cat}`}
             aria-current={isActive ? 'page' : undefined}
-            className="px-3 py-1.5 rounded-full border transition-colors"
+            className="px-3 py-1.5 rounded-full border transition-[color,background-color,border-color,transform] duration-200 hover:-translate-y-0.5"
             style={{
               borderColor: isActive ? 'var(--color-accent)' : 'var(--border)',
               color: isActive ? 'var(--color-accent)' : 'var(--text-muted)',

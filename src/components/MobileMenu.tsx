@@ -35,12 +35,12 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
       aria-label="Mobile navigation"
     >
       <div
-        className="absolute inset-0"
+        className="menu-overlay absolute inset-0 backdrop-blur-sm"
         style={{ backgroundColor: 'color-mix(in srgb, black 55%, transparent)' }}
         onClick={onClose}
       />
       <div
-        className="absolute top-0 right-0 h-full w-72 max-w-[85%] border-l p-6 flex flex-col gap-1 animate-in"
+        className="menu-panel absolute top-0 right-0 h-full w-72 max-w-[85%] border-l p-6 flex flex-col gap-1"
         style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border)' }}
       >
         <div className="flex items-center justify-between mb-6">

@@ -148,6 +148,272 @@ html {
   }
 }
 
+/* ================================================================
+   Motion system — page transitions, scroll reveals, smoke & glow
+   ================================================================ */
+:root {
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-fast: 160ms;
+  --motion-med: 260ms;
+  --motion-slow: 440ms;
+}
+
+/* --- Route transition ------------------------------------------- */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+.page-in {
+  animation: page-in var(--motion-slow) var(--ease-out-soft) both;
+}
+
+/* --- Scroll reveal -------------------------------------------------
+   Elements start hidden and animate in when the <Reveal> component
+   adds .is-visible. The component renders children visible up-front
+   when JS/IO is unavailable or reduced motion is requested, so the
+   hidden state below is only ever seen when the animation will run. */
+.reveal:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(16px);
+  filter: blur(8px);
+}
+.reveal.is-visible {
+  animation: reveal-in 620ms var(--ease-out-soft) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* --- Drifting smoke layer ------------------------------------------
+   Blurred colour blobs that slowly wander behind the hero. Purely
+   decorative: pointer-events:none, masked so it fades before the
+   content below it. */
+.smoke-layer {
+  position: absolute;
+  top: -12%;
+  left: 0;
+  right: 0;
+  height: 124%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(130% 90% at 50% 15%, #000 38%, transparent 80%);
+  mask-image: radial-gradient(130% 90% at 50% 15%, #000 38%, transparent 80%);
+}
+.smoke-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(65px);
+  will-change: transform;
+  background: radial-gradient(
+    circle at 32% 32%,
+    color-mix(in srgb, var(--color-accent) 65%, transparent),
+    transparent 70%
+  );
+}
+.smoke-blob:nth-child(1) {
+  width: 46vw;
+  height: 46vw;
+  left: -8vw;
+  top: -8vw;
+  opacity: 0.35;
+  animation: smoke-a 26s ease-in-out infinite alternate;
+}
+.smoke-blob:nth-child(2) {
+  width: 40vw;
+  height: 40vw;
+  right: -10vw;
+  top: 0;
+  opacity: 0.22;
+  background: radial-gradient(
+    circle at 40% 40%,
+    color-mix(in srgb, var(--color-led) 55%, transparent),
+    transparent 70%
+  );
+  animation: smoke-b 33s ease-in-out infinite alternate;
+}
+.smoke-blob:nth-child(3) {
+  width: 32vw;
+  height: 32vw;
+  left: 32vw;
+  top: 8vw;
+  opacity: 0.18;
+  animation: smoke-c 21s ease-in-out infinite alternate;
+}
+@keyframes smoke-a {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6vw, 4vw, 0) scale(1.18);
+  }
+}
+@keyframes smoke-b {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+  to {
+    transform: translate3d(-5vw, 5vw, 0) scale(0.88);
+  }
+}
+@keyframes smoke-c {
+  from {
+    transform: translate3d(0, 0, 0) scale(0.9);
+  }
+  to {
+    transform: translate3d(4vw, -4vw, 0) scale(1.22);
+  }
+}
+
+/* Soft glow that trails the pointer across the hero (desktop only). */
+.hero-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-accent) 22%, transparent),
+    transparent 66%
+  );
+  transform: translate3d(var(--gx, -50%), var(--gy, -50%), 0) translate(-50%, -50%);
+  transition: opacity 320ms ease;
+  will-change: transform;
+}
+.hero-glow.is-active {
+  opacity: 1;
+}
+
+/* --- Accent-button glow on hover ------------------------------------ */
+.glow-hover {
+  transition: transform var(--motion-fast) var(--ease-smooth),
+    box-shadow var(--motion-med) var(--ease-smooth),
+    filter var(--motion-med) var(--ease-smooth);
+}
+.glow-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 34px -8px color-mix(in srgb, var(--color-accent) 60%, transparent);
+}
+.glow-hover:active {
+  transform: translateY(0);
+}
+
+/* --- Smoky divider ------------------------------------------------- */
+.divider-smoke {
+  position: relative;
+}
+.divider-smoke::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-accent) 55%, transparent),
+    transparent
+  );
+  background-size: 220% 100%;
+  animation: divider-sweep 9s linear infinite;
+}
+@keyframes divider-sweep {
+  from {
+    background-position: 220% 0;
+  }
+  to {
+    background-position: -220% 0;
+  }
+}
+
+/* --- Mobile menu entrance ---------------------------------------- */
+@keyframes overlay-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes panel-slide {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.menu-overlay {
+  animation: overlay-fade var(--motion-fast) ease-out both;
+}
+.menu-panel {
+  animation: panel-slide var(--motion-med) var(--ease-out-soft) both;
+}
+
+/* --- Nav links: wipe-in underline ------------------------------- */
+.nav-underline {
+  position: relative;
+}
+.nav-underline::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 6px;
+  height: 1px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--motion-med) var(--ease-smooth);
+}
+.nav-underline:hover::after,
+.nav-underline[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smoke-layer,
+  .hero-glow {
+    display: none !important;
+  }
+  .divider-smoke::after {
+    animation: none !important;
+  }
+  .reveal:not(.is-visible) {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);

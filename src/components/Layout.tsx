@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
+import { PageTransition } from './PageTransition';
 import { useActivityTracking } from '@/hooks/useActivityTracking';
 
 export function Layout() {
@@ -17,7 +18,9 @@ export function Layout() {
       </a>
       <Navbar />
       <main id="main-content" className="flex-1">
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </main>
       <Footer />
     </div>
